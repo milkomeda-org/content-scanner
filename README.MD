@@ -51,3 +51,17 @@
 
 ### 提示
 @header @query @body @return_param 按照模板对应表格顺序编写参数，使用空格分割
+
+JetBrains IDE可使用自定义Live Template添加如下内容，快捷生成模板
+```
+/**
+ * #doc
+ * @class $class$
+ * @title $title$
+ * @description $description$
+ * @method $method$
+ * @url /$path$
+ * @return {"code":0,"msg":"ok","data":"success","ts":"2020-10-30T03:59:45.591Z"}
+ * @remark $remark$
+ */
+```
