@@ -42,17 +42,17 @@
     <property name="configurable.Project.GOPATH.is.expanded" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/controller" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="restartRequiresConfirmation" value="false" />
-    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="settings.editor.selected.configurable" value="editing.templates" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\go\src\annotation-parse\controller\a" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="D:\go\src\annotation-parse\controller" />
       <recent name="D:\go\src\annotation-parse" />
+      <recent name="D:\go\src\annotation-parse\controller" />
     </key>
   </component>
   <component name="RunManager" selected="Go Build.go build main.go">
@@ -185,6 +185,10 @@
     </state>
     <state width="1877" height="449" key="GridCell.Tab.1.right/0.30.1920.1050/-1920.0.1920.1080@-1920.0.1920.1080" timestamp="1604389053127" />
     <state width="1534" height="415" key="GridCell.Tab.1.right/0.30.1920.1050/-1920.0.1920.1080@0.30.1920.1050" timestamp="1604314329636" />
+    <state x="-1459" y="185" key="SettingsEditor" timestamp="1604389338732">
+      <screen x="-1920" y="0" width="1920" height="1080" />
+    </state>
+    <state x="-1459" y="185" key="SettingsEditor/0.30.1920.1050/-1920.0.1920.1080@-1920.0.1920.1080" timestamp="1604389338732" />
     <state width="768" height="459" key="XDebugger.FullValuePopup" timestamp="1604384894972">
       <screen x="-1920" y="0" width="1920" height="1080" />
     </state>
