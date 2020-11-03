@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -115,7 +116,10 @@ func ParseFile(f *os.FileInfo, fs *[]*Request, t *template.Template, wg *sync.Wa
 			fmt.Println((*f).Name(), "*", l)
 		}
 		for _, part := range s {
-			con := Parse(part[0])
+			con,err := Parse(part[0])
+			if nil != err {
+				continue
+			}
 			var buf bytes.Buffer
 			_ = t.Execute(&buf, con)
 			func() {
@@ -222,10 +226,10 @@ type Content struct {
 	Number      string // number int
 }
 
-func Parse(annotation string) *Content {
+func Parse(annotation string) (*Content,error){
 	// 解析@
-	if !strings.ContainsAny(annotation, CiFlag) {
-		return nil
+	if !strings.Contains(annotation, CiFlag) {
+		return nil, errors.New("no doc annotation")
 	}
 	tagReg := regexp.MustCompile(`@[\w\W]*?\n`)
 	tagLine := tagReg.FindAllStringSubmatch(annotation, -1)
@@ -338,7 +342,7 @@ func Parse(annotation string) *Content {
 			continue
 		}
 	}
-	return content
+	return content, nil
 }
 
 func IsContain(items []string, item string) bool {
