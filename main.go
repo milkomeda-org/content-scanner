@@ -25,7 +25,7 @@ import (
 const CiFlag = "#doc"
 
 // 支持的文件格式
-var ExtSupported = []string{".go", ".js"}
+var ExtSupported = []string{".go", ".js", ".java", ".php"}
 
 var URL string
 var key string
@@ -59,7 +59,7 @@ func main() {
 			return
 		}
 		Scan(&files, &fs, t, &wg, searchPath)
-	}else {
+	} else {
 		ParseFile(fileInfo, &fs, t, &wg, false, searchPath)
 	}
 	if len(fs) > 0 {
@@ -88,7 +88,7 @@ func Scan(files *[]os.FileInfo, fs *[]*Request, t *template.Template, wg *sync.W
 				return
 			}
 			Scan(&files2, fs, t, wg, p)
-		}else {
+		} else {
 			ParseFile(&f, fs, t, wg, true, parentPath)
 		}
 	}
@@ -98,7 +98,7 @@ func ParseFile(f *os.FileInfo, fs *[]*Request, t *template.Template, wg *sync.Wa
 	var fp string
 	if IsDir {
 		fp = pathAssemble(parentPath, (*f).Name())
-	}else {
+	} else {
 		fp = parentPath
 	}
 	if !IsContain(ExtSupported, path.Ext(fp)) {
@@ -116,7 +116,7 @@ func ParseFile(f *os.FileInfo, fs *[]*Request, t *template.Template, wg *sync.Wa
 			fmt.Println((*f).Name(), "*", l)
 		}
 		for _, part := range s {
-			con,err := Parse(part[0])
+			con, err := Parse(part[0])
 			if nil != err {
 				continue
 			}
@@ -226,7 +226,7 @@ type Content struct {
 	Number      string // number int
 }
 
-func Parse(annotation string) (*Content,error){
+func Parse(annotation string) (*Content, error) {
 	// 解析@
 	if !strings.Contains(annotation, CiFlag) {
 		return nil, errors.New("no doc annotation")
@@ -362,7 +362,7 @@ func IsDir(path string) (bool, *os.FileInfo) {
 	return s.IsDir(), &s
 }
 
-func pathAssemble(p, f string) string{
+func pathAssemble(p, f string) string {
 	if path.Base(p) == "/" || path.Base(searchPath) == "\\" {
 		return p + f
 	} else {
