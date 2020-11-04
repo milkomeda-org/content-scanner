@@ -1,6 +1,6 @@
-[](https://img.shields.io/github/stars/milkomeda-org/doc-scanner)
-[](https://img.shields.io/github/issues/milkomeda-org/doc-scanner)
-[](https://img.shields.io/github/license/milkomeda-org/doc-scanner)
+![](https://img.shields.io/github/stars/milkomeda-org/doc-scanner)
+![](https://img.shields.io/github/issues/milkomeda-org/doc-scanner)
+![](https://img.shields.io/github/license/milkomeda-org/doc-scanner)
 # Content Scanner
 ### Method Of Use
 Write matching comments at the interface layer and execute the program
