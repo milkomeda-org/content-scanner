@@ -1,9 +1,12 @@
-// Copyright The ZHIYUN Co. All rights reserved.
+// Copyright The ef Co. ltd All rights reserved.
 // Created by vinson on 2020/10/30.
 
 package main
 
 import (
+	"annotation-parse/parsor"
+	"annotation-parse/statement"
+	"annotation-parse/utils"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
@@ -11,8 +14,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"regexp"
@@ -25,8 +26,9 @@ import (
 const CiFlag = "#doc"
 
 // 支持的文件格式
-var ExtSupported = []string{".go", ".js", ".java", ".php"}
+var ExtSupported = []string{".go", ".js", ".java", ".php", ".py"}
 
+var t string
 var URL string
 var key string
 var token string
@@ -36,6 +38,7 @@ var searchPath string
 var templatePath string
 
 func main() {
+	flag.StringVar(&t, "type", "showdoc", "Document system type, example for showdoc, yapi?")
 	flag.StringVar(&URL, "url", "http://172.16.2.101:4999/server/index.php?s=/api/item/updateByApi", "show doc api")
 	flag.StringVar(&key, "key", "e9f0bdd396a768399c63ef86d70ccc322044412143", "show doc api_key")
 	flag.StringVar(&token, "token", "834e06eb69e21565d997cf15a1159da21794468976", "show doc api_token")
@@ -44,67 +47,86 @@ func main() {
 	flag.StringVar(&templatePath, "templatePath", "./template.txt", "customer template file path")
 	flag.IntVar(&speed, "speed", 1, "for Concurrent requests")
 	flag.Parse()
-	fmt.Println("start")
-	var fs []*Request
+	fmt.Println(fmt.Sprintf("#\n"+
+		"# start\n"+
+		"# type: %s \n"+
+		"# url: %s\n"+
+		"# cat: %s\n"+
+		"# search_path: %s\n"+
+		"# template: %s\n"+
+		"# multipost: %d\n"+
+		"#",
+		t, URL, cat, searchPath, templatePath, speed))
+	var ps *statement.Context
+	// get context
+	switch t {
+	case "showdoc":
+		ps = parsor.NewShowDoc()
+	default:
+		panic("missing document type")
+	}
+	// parse args
+	var rq = (*ps).RequestQueue()
 	var wg sync.WaitGroup
-	t, err := getTemplate()
+	t, err := utils.GetTemplate(templatePath)
 	if nil != err {
 		fmt.Println(err)
 		return
 	}
-	if ok, fileInfo := IsDir(searchPath); ok {
+	if ok, fileInfo := utils.IsDir(searchPath); ok {
 		files, err := ioutil.ReadDir(searchPath)
 		if nil != err {
 			fmt.Println(err)
 			return
 		}
-		Scan(&files, &fs, t, &wg, searchPath)
+		Scan(ps, &files, rq, t, &wg, searchPath)
 	} else {
-		ParseFile(fileInfo, &fs, t, &wg, false, searchPath)
+		ParseFile(ps, fileInfo, rq, t, &wg, false, searchPath)
 	}
-	if len(fs) > 0 {
-		wg.Add(len(fs))
-		for _, request := range fs {
+	if len(*rq) > 0 {
+		wg.Add(len(*rq))
+		for _, request := range *rq {
 			request := request
 			go func() {
-				Post(*request)
+				(*request).Post()
 				wg.Done()
 			}()
 		}
 		wg.Wait()
-		fs = fs[:0]
+		*rq = (*rq)[:0]
 	}
-	fmt.Println("end")
+	fmt.Println("# end")
 }
 
-// 递归扫描
-func Scan(files *[]os.FileInfo, fs *[]*Request, t *template.Template, wg *sync.WaitGroup, parentPath string) {
+// 递归扫描文件夹
+func Scan(ctx *statement.Context, files *[]os.FileInfo, fs *[]*statement.Request, t *template.Template, wg *sync.WaitGroup, parentPath string) {
 	for _, f := range *files {
 		if f.IsDir() {
-			p := pathAssemble(parentPath, f.Name())
+			p := utils.PathAssemble(parentPath, f.Name())
 			files2, err := ioutil.ReadDir(p)
 			if nil != err {
 				fmt.Println(err)
 				return
 			}
-			Scan(&files2, fs, t, wg, p)
+			Scan(ctx, &files2, fs, t, wg, p)
 		} else {
-			ParseFile(&f, fs, t, wg, true, parentPath)
+			ParseFile(ctx, &f, fs, t, wg, true, parentPath)
 		}
 	}
 }
 
-func ParseFile(f *os.FileInfo, fs *[]*Request, t *template.Template, wg *sync.WaitGroup, IsDir bool, parentPath string) {
+// 解析单个文件
+func ParseFile(ctx *statement.Context, f *os.FileInfo, fs *[]*statement.Request, t *template.Template, wg *sync.WaitGroup, IsDir bool, parentPath string) {
 	var fp string
 	if IsDir {
-		fp = pathAssemble(parentPath, (*f).Name())
+		fp = utils.PathAssemble(parentPath, (*f).Name())
 	} else {
 		fp = parentPath
 	}
-	if !IsContain(ExtSupported, path.Ext(fp)) {
+	if !utils.IsContain(ExtSupported, path.Ext(fp)) {
 		return
 	}
-	content, err := ReadAll(fp)
+	content, err := utils.ReadAll(fp)
 	if nil != err {
 		fmt.Println(err)
 		return
@@ -125,15 +147,15 @@ func ParseFile(f *os.FileInfo, fs *[]*Request, t *template.Template, wg *sync.Wa
 			func() {
 				//开协程处理
 				decoded, _ := base64.StdEncoding.DecodeString(cat)
-				decodecat := string(decoded)
-				v := &Request{URL, key, token, decodecat, con.Class, con.Title, buf.String()}
+				dCat := string(decoded)
+				v := (*ctx).NewRequest(URL, key, token, dCat, con.Class, con.Title, buf.String())
 				*fs = append(*fs, v)
-				if len(*fs) >= 5 {
+				if len(*fs) >= speed {
 					wg.Add(len(*fs))
 					for _, request := range *fs {
 						request := request
 						go func() {
-							Post(*request)
+							(*request).Post()
 							wg.Done()
 						}()
 					}
@@ -143,71 +165,6 @@ func ParseFile(f *os.FileInfo, fs *[]*Request, t *template.Template, wg *sync.Wa
 			}()
 		}
 	}
-}
-
-// 读取文件字符串
-func ReadAll(filePth string) (string, error) {
-	f, err := os.Open(filePth)
-	if err != nil {
-		return "", err
-	}
-	readAll, err := ioutil.ReadAll(f)
-	if nil == err {
-		return string(readAll), err
-	}
-	return "", err
-}
-
-func getTemplate() (*template.Template, error) {
-	files := []string{templatePath}
-	return template.ParseFiles(files...)
-}
-
-func Post(req Request) {
-	urlValues := url.Values{}
-	urlValues.Add("api_key", req.Key)
-	urlValues.Add("api_token", req.Token)
-	if req.Class != "" {
-		urlValues.Add("cat_name", req.Cat+req.Class)
-	} else {
-		urlValues.Add("cat_name", req.Cat)
-	}
-	urlValues.Add("page_title", req.Title)
-	urlValues.Add("page_content", req.Content)
-	var resp, err = http.PostForm(req.URL, urlValues)
-	if nil != err {
-		fmt.Println(err)
-		return
-	}
-	defer func() {
-		err := resp.Body.Close()
-		if nil != err {
-			fmt.Println(err)
-			return
-		}
-	}()
-	body, err := ioutil.ReadAll(resp.Body)
-	if nil != err {
-		fmt.Println(err)
-		return
-	}
-	var result map[string]interface{}
-	_ = json.Unmarshal(body, &result)
-	rs := "Ok"
-	if result["error_code"].(float64) != 0 {
-		rs = "Failed"
-	}
-	fmt.Println(req.Class+req.Title, "-", rs)
-}
-
-type Request struct {
-	URL     string
-	Key     string
-	Token   string
-	Cat     string
-	Class   string
-	Title   string
-	Content string
 }
 
 type Content struct {
@@ -226,6 +183,7 @@ type Content struct {
 	Number      string // number int
 }
 
+// 将一条注释解析成Content
 func Parse(annotation string) (*Content, error) {
 	// 解析@
 	if !strings.Contains(annotation, CiFlag) {
@@ -343,29 +301,4 @@ func Parse(annotation string) (*Content, error) {
 		}
 	}
 	return content, nil
-}
-
-func IsContain(items []string, item string) bool {
-	for _, eachItem := range items {
-		if eachItem == item {
-			return true
-		}
-	}
-	return false
-}
-
-func IsDir(path string) (bool, *os.FileInfo) {
-	s, err := os.Stat(path)
-	if err != nil {
-		return false, nil
-	}
-	return s.IsDir(), &s
-}
-
-func pathAssemble(p, f string) string {
-	if path.Base(p) == "/" || path.Base(searchPath) == "\\" {
-		return p + f
-	} else {
-		return p + "/" + f
-	}
 }
