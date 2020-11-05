@@ -20,6 +20,7 @@ import (
 	"strings"
 	"sync"
 	"text/template"
+	"time"
 )
 
 // 带有此标识的匹配注释才会进行文档解析
@@ -38,6 +39,11 @@ var searchPath string
 var templatePath string
 
 func main() {
+	t1 := time.Now()
+	defer func() {
+		t2 := time.Now()
+		fmt.Println(t2.Sub(t1))
+	}()
 	flag.StringVar(&t, "type", "showdoc", "Document system type, example for showdoc, yapi?")
 	flag.StringVar(&URL, "url", "http://172.16.2.101:4999/server/index.php?s=/api/item/updateByApi", "show doc api")
 	flag.StringVar(&key, "key", "e9f0bdd396a768399c63ef86d70ccc322044412143", "show doc api_key")
