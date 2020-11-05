@@ -5,7 +5,7 @@
 ### Method Of Use
 Write matching comments at the interface layer and execute the program
 
-Js.go.java.php file is currently available for scanning. Please add other types to compile
+.js .go .java .php file is currently available for scanning. Please add other types to compile
 
 ### Script parameter description
 > -type (the document type)
