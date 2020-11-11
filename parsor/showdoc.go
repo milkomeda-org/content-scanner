@@ -1,4 +1,3 @@
-// Copyright The ef Co. ltd All rights reserved.
 // Created by vinson on 2020/11/4.
 // ShowDoc Scanner
 

@@ -8,14 +8,18 @@ Write matching comments at the interface layer and execute the program
 .js .go .java .php file is currently available for scanning. Please add other types to compile
 
 ### Script parameter description
-> -type (the document type)
-  -url (upload the address)
-  -key (project api key)
-  -token (project api token)
-  -speed (number of concurrent upload requests)
-  -cat (base 64 encoding of fixed directory, directory using / split)
-  -searchPath (the directory or file in which the scan is performed)
-  -templatePath (template file path)
+
+| parameter name | use     | type |
+|--------|----------|----------|
+|type| the document type|string
+|url| upload the address|string
+|key| project api key|string
+|token| project api token|string
+|speed| number of concurrent upload requests|int
+|cat| base 64 encoding of fixed directory, directory using / split|string
+|searchPath | the directory or file in which the scan is performed|string
+|templatePath| template file path|string
+|ask| Ask first, then execute the program|boolean
 
 ### The annotation examples
 ```

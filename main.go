@@ -1,4 +1,3 @@
-// Copyright The ef Co. ltd All rights reserved.
 // Created by vinson on 2020/10/30.
 
 package main
@@ -37,6 +36,7 @@ var cat string
 var speed int
 var searchPath string
 var templatePath string
+var ask bool
 
 func main() {
 	t1 := time.Now()
@@ -52,17 +52,20 @@ func main() {
 	flag.StringVar(&searchPath, "searchPath", "./controller", "search path")
 	flag.StringVar(&templatePath, "templatePath", "./template.txt", "customer template file path")
 	flag.IntVar(&speed, "speed", 1, "for Concurrent requests")
+	flag.BoolVar(&ask, "ask", true, "Ask first, then execute the program")
 	flag.Parse()
-	fmt.Println(fmt.Sprintf("#\n"+
-		"# start\n"+
-		"# type: %s \n"+
-		"# url: %s\n"+
-		"# cat: %s\n"+
-		"# search_path: %s\n"+
-		"# template: %s\n"+
-		"# multipost: %d\n"+
-		"#",
-		t, URL, cat, searchPath, templatePath, speed))
+	var head = func() {
+		fmt.Println(fmt.Sprintf("#\n"+
+			"# start\n"+
+			"# type: %s \n"+
+			"# url: %s\n"+
+			"# cat: %s\n"+
+			"# search_path: %s\n"+
+			"# template: %s\n"+
+			"# multipost: %d\n"+
+			"#",
+			t, URL, cat, searchPath, templatePath, speed))
+	}
 	var ps *statement.Context
 	// get context
 	switch t {
@@ -80,15 +83,28 @@ func main() {
 		return
 	}
 	if ok, fileInfo := utils.IsDir(searchPath); ok {
-		files, err := ioutil.ReadDir(searchPath)
+		// read the file list of searchPath and be sort they by modify time
+		// wait for user select any options to continue
+		files, err := utils.ReadDirOrderByModify(searchPath)
 		if nil != err {
 			fmt.Println(err)
 			return
 		}
-		Scan(ps, &files, rq, t, &wg, searchPath)
+		selection := -1
+		if ask {
+			selection = utils.Selection(&files)
+		}
+		head()
+		if selection == -1 {
+			Scan(ps, &files, rq, t, &wg, searchPath)
+		} else {
+			ParseFile(ps, &(files[selection]), rq, t, &wg, true, searchPath)
+		}
 	} else {
+		// 单文件直接执行
 		ParseFile(ps, fileInfo, rq, t, &wg, false, searchPath)
 	}
+	// redundant
 	if len(*rq) > 0 {
 		wg.Add(len(*rq))
 		for _, request := range *rq {
@@ -130,6 +146,7 @@ func ParseFile(ctx *statement.Context, f *os.FileInfo, fs *[]*statement.Request,
 		fp = parentPath
 	}
 	if !utils.IsContain(ExtSupported, path.Ext(fp)) {
+		fmt.Println("file type is not supported")
 		return
 	}
 	content, err := utils.ReadAll(fp)
@@ -170,6 +187,8 @@ func ParseFile(ctx *statement.Context, f *os.FileInfo, fs *[]*statement.Request,
 				}
 			}()
 		}
+	} else {
+		fmt.Println("reg initialize Failed")
 	}
 }
 
@@ -189,7 +208,7 @@ type Content struct {
 	Number      string // number int
 }
 
-// 将一条注释解析成Content
+// the function can parse the annotation str to a Content obj
 func Parse(annotation string) (*Content, error) {
 	// 解析@
 	if !strings.Contains(annotation, CiFlag) {

@@ -1,4 +1,3 @@
-// Copyright The ef Co. ltd All rights reserved.
 // Created by vinson on 2020/11/4.
 
 package utils
@@ -7,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"sort"
 	"text/template"
 )
 
@@ -50,4 +50,27 @@ func ReadAll(filePth string) (string, error) {
 func GetTemplate(path string) (*template.Template, error) {
 	files := []string{path}
 	return template.ParseFiles(files...)
+}
+
+func ReadDirOrderByModify(dirname string) ([]os.FileInfo, error) {
+	fs, err := ioutil.ReadDir(dirname)
+	if err != nil {
+		return fs, err
+	}
+	return sortByTime(fs), nil
+}
+
+func sortByTime(pl []os.FileInfo) []os.FileInfo {
+	sort.Slice(pl, func(i, j int) bool {
+		flag := false
+		if pl[i].ModTime().After(pl[j].ModTime()) {
+			flag = true
+		} else if pl[i].ModTime().Equal(pl[j].ModTime()) {
+			if pl[i].Name() < pl[j].Name() {
+				flag = true
+			}
+		}
+		return flag
+	})
+	return pl
 }

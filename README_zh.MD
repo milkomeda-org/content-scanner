@@ -7,14 +7,17 @@
 .js .go .java .php文件目前可用于扫描，其他类型请自行添加
 
 ### 脚本参数说明
-> -type 文档系统类型
-  -url 上传地址
-  -key 项目api_key
-  -token 项目api_token
-  -speed 上传请求并发速度
-  -cat 前置固定目录的base64
-  -searchPath 目录/文件
-  -templatePath 模板文件路径
+| 参数名 | 用途     | 类型
+|--------|----------|----------|
+|type| 文档系统类型|string
+|url| 上传地址|string
+|key| 项目api_key|string
+|token| 项目api_token|string
+|speed| 上传请求并发速度|int
+|cat| 前置固定目录的base64|string
+|searchPath | 目录/文件|string
+|templatePath| 模板文件路径|string
+|ask| 是否先询问再继续执行|boolean
 
 ### 注释示例
 ```
