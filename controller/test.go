@@ -1,7 +1,7 @@
 package a
 
 /**
-//@doc OnGetAppVersionHandler
+//#doc OnGetAppVersionHandler
 //@class app版本管理
 //@title 版本查询
 //@description 查询版本信息和更新信息
