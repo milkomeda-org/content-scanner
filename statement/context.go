@@ -2,7 +2,10 @@
 
 package statement
 
+import "annotation-parse/model"
+
 type Context interface {
-	NewRequest(URL, key, token, cat, class, title, buf string) *Request
+	New(condition *model.Condition) *Context
+	NewRequest(condition *model.Condition, content *model.Content) *Request
 	RequestQueue() *[]*Request
 }

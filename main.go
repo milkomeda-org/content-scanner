@@ -3,6 +3,7 @@
 package main
 
 import (
+	"annotation-parse/model"
 	"annotation-parse/parsor"
 	"annotation-parse/statement"
 	"annotation-parse/utils"
@@ -18,7 +19,6 @@ import (
 	"regexp"
 	"strings"
 	"sync"
-	"text/template"
 	"time"
 )
 
@@ -28,32 +28,25 @@ const CiFlag = "#doc"
 // 支持的文件格式
 var ExtSupported = []string{".go", ".js", ".java", ".php", ".py"}
 
-var t string
-var URL string
-var key string
-var token string
-var cat string
-var speed int
-var searchPath string
-var templatePath string
-var ask bool
-
 func main() {
 	t1 := time.Now()
 	defer func() {
 		t2 := time.Now()
 		fmt.Println(t2.Sub(t1))
 	}()
-	flag.StringVar(&t, "type", "showdoc", "Document system type, example for showdoc, yapi?")
-	flag.StringVar(&URL, "url", "http://172.16.2.101:4999/server/index.php?s=/api/item/updateByApi", "show doc api")
-	flag.StringVar(&key, "key", "e9f0bdd396a768399c63ef86d70ccc322044412143", "show doc api_key")
-	flag.StringVar(&token, "token", "834e06eb69e21565d997cf15a1159da21794468976", "show doc api_token")
-	flag.StringVar(&cat, "cat", "", "doc cat, End with second /")
-	flag.StringVar(&searchPath, "searchPath", "./controller", "search path")
-	flag.StringVar(&templatePath, "templatePath", "./template.txt", "customer template file path")
-	flag.IntVar(&speed, "speed", 1, "for Concurrent requests")
-	flag.BoolVar(&ask, "ask", true, "Ask first, then execute the program")
+	var condition model.Condition
+	flag.StringVar(&condition.T, "type", "showdoc", "Document system type, example for showdoc, yapi?")
+	flag.StringVar(&condition.URL, "url", "http://172.16.2.101:4999/server/index.php?s=/api/item/updateByApi", "show doc api")
+	flag.StringVar(&condition.Key, "key", "e9f0bdd396a768399c63ef86d70ccc322044412143", "show doc api_key")
+	flag.StringVar(&condition.Token, "token", "834e06eb69e21565d997cf15a1159da21794468976", "show doc api_token")
+	flag.StringVar(&condition.Cat, "cat", "", "doc cat, End with second /")
+	flag.StringVar(&condition.SearchPath, "searchPath", "./controller", "search path")
+	flag.StringVar(&condition.TemplatePath, "templatePath", "./template.txt", "customer template file path")
+	flag.IntVar(&condition.Speed, "speed", 1, "for Concurrent requests")
+	flag.BoolVar(&condition.Ask, "ask", true, "Ask first, then execute the program")
 	flag.Parse()
+	decoded, _ := base64.StdEncoding.DecodeString(condition.Cat)
+	condition.Cat = string(decoded)
 	var head = func() {
 		fmt.Println(fmt.Sprintf("#\n"+
 			"# start\n"+
@@ -64,45 +57,42 @@ func main() {
 			"# template: %s\n"+
 			"# multipost: %d\n"+
 			"#",
-			t, URL, cat, searchPath, templatePath, speed))
+			condition.T, condition.URL, condition.Cat, condition.SearchPath, condition.TemplatePath, condition.Speed))
 	}
 	var ps *statement.Context
 	// get context
-	switch t {
+	switch condition.T {
 	case "showdoc":
-		ps = parsor.NewShowDoc()
+		ps = (&parsor.ShowDoc{}).New(&condition)
+	case "yapi":
+		ps = (&parsor.YApi{}).New(&condition)
 	default:
 		panic("missing document type")
 	}
 	// parse args
 	var rq = (*ps).RequestQueue()
 	var wg sync.WaitGroup
-	t, err := utils.GetTemplate(templatePath)
-	if nil != err {
-		fmt.Println(err)
-		return
-	}
-	if ok, fileInfo := utils.IsDir(searchPath); ok {
+	if ok, fileInfo := utils.IsDir(condition.SearchPath); ok {
 		// read the file list of searchPath and be sort they by modify time
 		// wait for user select any options to continue
-		files, err := utils.ReadDirOrderByModify(searchPath)
+		files, err := utils.ReadDirOrderByModify(condition.SearchPath)
 		if nil != err {
 			fmt.Println(err)
 			return
 		}
 		selection := -1
-		if ask {
+		if condition.Ask {
 			selection = utils.Selection(&files)
 		}
 		head()
 		if selection == -1 {
-			Scan(ps, &files, rq, t, &wg, searchPath)
+			Scan(ps, &files, rq, &condition, &wg, condition.SearchPath)
 		} else {
-			ParseFile(ps, &(files[selection]), rq, t, &wg, true, searchPath)
+			ParseFile(ps, &(files[selection]), rq, &condition, &wg, true, condition.SearchPath)
 		}
 	} else {
 		// 单文件直接执行
-		ParseFile(ps, fileInfo, rq, t, &wg, false, searchPath)
+		ParseFile(ps, fileInfo, rq, &condition, &wg, false, condition.SearchPath)
 	}
 	// redundant
 	if len(*rq) > 0 {
@@ -121,7 +111,7 @@ func main() {
 }
 
 // 递归扫描文件夹
-func Scan(ctx *statement.Context, files *[]os.FileInfo, fs *[]*statement.Request, t *template.Template, wg *sync.WaitGroup, parentPath string) {
+func Scan(ctx *statement.Context, files *[]os.FileInfo, fs *[]*statement.Request, condition *model.Condition, wg *sync.WaitGroup, parentPath string) {
 	for _, f := range *files {
 		if f.IsDir() {
 			p := utils.PathAssemble(parentPath, f.Name())
@@ -130,15 +120,15 @@ func Scan(ctx *statement.Context, files *[]os.FileInfo, fs *[]*statement.Request
 				fmt.Println(err)
 				return
 			}
-			Scan(ctx, &files2, fs, t, wg, p)
+			Scan(ctx, &files2, fs, condition, wg, p)
 		} else {
-			ParseFile(ctx, &f, fs, t, wg, true, parentPath)
+			ParseFile(ctx, &f, fs, condition, wg, true, parentPath)
 		}
 	}
 }
 
 // 解析单个文件
-func ParseFile(ctx *statement.Context, f *os.FileInfo, fs *[]*statement.Request, t *template.Template, wg *sync.WaitGroup, IsDir bool, parentPath string) {
+func ParseFile(ctx *statement.Context, f *os.FileInfo, fs *[]*statement.Request, condition *model.Condition, wg *sync.WaitGroup, IsDir bool, parentPath string) {
 	var fp string
 	if IsDir {
 		fp = utils.PathAssemble(parentPath, (*f).Name())
@@ -161,62 +151,39 @@ func ParseFile(ctx *statement.Context, f *os.FileInfo, fs *[]*statement.Request,
 			fmt.Println((*f).Name(), "*", l)
 		}
 		for _, part := range s {
-			con, err := Parse(part[0])
+			context, err := Parse(part[0])
 			if nil != err {
 				continue
 			}
-			var buf bytes.Buffer
-			_ = t.Execute(&buf, con)
-			func() {
-				//开协程处理
-				decoded, _ := base64.StdEncoding.DecodeString(cat)
-				dCat := string(decoded)
-				v := (*ctx).NewRequest(URL, key, token, dCat, con.Class, con.Title, buf.String())
-				*fs = append(*fs, v)
-				if len(*fs) >= speed {
-					wg.Add(len(*fs))
-					for _, request := range *fs {
-						request := request
-						go func() {
-							(*request).Post()
-							wg.Done()
-						}()
-					}
-					wg.Wait()
-					*fs = (*fs)[:0]
+			v := (*ctx).NewRequest(condition, context)
+			*fs = append(*fs, v)
+			if len(*fs) >= condition.Speed {
+				wg.Add(len(*fs))
+				for _, request := range *fs {
+					request := request
+					go func() {
+						(*request).Post()
+						wg.Done()
+					}()
 				}
-			}()
+				wg.Wait()
+				*fs = (*fs)[:0]
+			}
 		}
 	} else {
 		fmt.Println("reg initialize Failed")
 	}
 }
 
-type Content struct {
-	Catalog     string // catalog xx/xx/
-	Class       string // class string
-	Title       string // title title
-	Description string // description description
-	Method      string // method method
-	URL         string // url url
-	Header      string // @header 名称 必选 类型 释义
-	Query       string // @param 名称 必选 类型 释义
-	Body        string // @body 名称 必选 类型 释义
-	Return      string // @return str
-	ReturnParam string // @return_param 名称 类型 释义
-	Remark      string // @remark str
-	Number      string // number int
-}
-
 // the function can parse the annotation str to a Content obj
-func Parse(annotation string) (*Content, error) {
+func Parse(annotation string) (*model.Content, error) {
 	// 解析@
 	if !strings.Contains(annotation, CiFlag) {
 		return nil, errors.New("no doc annotation")
 	}
 	tagReg := regexp.MustCompile(`@[\w\W]*?\n`)
 	tagLine := tagReg.FindAllStringSubmatch(annotation, -1)
-	var content = &Content{}
+	var content = &model.Content{}
 	for _, tv := range tagLine {
 		tv[0] = strings.ReplaceAll(tv[0], "\r", "")
 		tv[0] = strings.ReplaceAll(tv[0], "\n", "")

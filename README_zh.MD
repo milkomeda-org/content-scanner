@@ -9,7 +9,7 @@
 ### 脚本参数说明
 | 参数名 | 用途     | 类型
 |--------|----------|----------|
-|type| 文档系统类型|string
+|type| 文档系统类型,参数值为枚举showdoc/yapi|string
 |url| 上传地址|string
 |key| 项目api_key|string
 |token| 项目api_token|string
@@ -27,9 +27,9 @@
  * @title
  * @description
  * @method post
- * @query id 必选 int 曲谱ID
- * @header id 必选 int 曲谱ID
- * @body id 必选 int 曲谱ID
+ * @query id 必选 int queryID
+ * @header id 必选 int queryID
+ * @body id 必选 int queryID
  * @url /api/update
  * @return {"code":0,"msg":"ok","data":"success","ts":"2020-10-30T03:59:45.591Z"}
  * @return_param id int query_id
@@ -57,14 +57,14 @@
 
 ### 已支持文档系统
 - ShowDoc
+- Yapi
 
 ### 即将支持
-- Yapi
 - Rap
 
 
 ### 提示
-@header @query @body @return_param 按照模板对应表格顺序编写参数，使用空格分割
+@header @query @body @return_param 按照参数名 是否必选 类型 描述顺序编写参数，使用空格分割
 
 JetBrains IDE可使用自定义Live Template添加如下内容，快捷生成模板
 ```
@@ -79,3 +79,5 @@ JetBrains IDE可使用自定义Live Template添加如下内容，快捷生成模
  * @remark $remark$
  */
 ```
+
+Yapi文档系统的cat为项目分类数字id，从分类url里获取，非数字无法上传

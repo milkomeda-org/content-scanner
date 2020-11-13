@@ -4,22 +4,34 @@
 package parsor
 
 import (
+	"annotation-parse/model"
 	"annotation-parse/statement"
+	"annotation-parse/utils"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"text/template"
 )
 
 type ShowDoc struct {
-	Queue *[]*statement.Request
+	template *template.Template
+	Queue    *[]*statement.Request
 }
 
 // 获取实例
-func NewShowDoc() *statement.Context {
-	var instance = ShowDoc{&[]*statement.Request{}}
-	if v, ok := (interface{}(&instance)).(statement.Context); ok {
+
+func (r *ShowDoc) New(condition *model.Condition) *statement.Context {
+	t, err := utils.GetTemplate(condition.TemplatePath)
+	if nil != err {
+		fmt.Println(err)
+		panic("get template error")
+	}
+	r.template = t
+	r.Queue = &[]*statement.Request{}
+	if v, ok := (interface{}(r)).(statement.Context); ok {
 		return &v
 	}
 	return nil
@@ -34,8 +46,14 @@ func (r *ShowDoc) RequestQueue() *[]*statement.Request {
 }
 
 // 获取Request
-func (r *ShowDoc) NewRequest(URL, key, token, cat, class, title, buf string) *statement.Request {
-	if v, ok := (interface{}(&Request{URL, key, token, cat, class, title, buf})).(statement.Request); ok {
+func (r *ShowDoc) NewRequest(condition *model.Condition, content *model.Content) *statement.Request {
+	var buf bytes.Buffer
+	err := r.template.Execute(&buf, content)
+	if nil != err {
+		fmt.Println(err)
+		return nil
+	}
+	if v, ok := (interface{}(&Request{condition.URL, condition.Key, condition.Token, condition.Cat, content.Class, content.Title, buf.String()})).(statement.Request); ok {
 		return &v
 	}
 	return nil

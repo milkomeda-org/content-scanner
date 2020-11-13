@@ -11,7 +11,7 @@ Write matching comments at the interface layer and execute the program
 
 | parameter name | use     | type |
 |--------|----------|----------|
-|type| the document type|string
+|type| the document type, input enum of showdoc/yapi|string
 |url| upload the address|string
 |key| project api key|string
 |token| project api token|string
@@ -57,9 +57,9 @@ Write matching comments at the interface layer and execute the program
 
 ### Document system supported
 - ShowDoc
+- Yapi
 
 ### To support
-- Yapi
 - Rap
 
 ### Hint
@@ -78,3 +78,5 @@ The JetBrains IDE adds the following to generate templates quickly using a custo
  * @remark $remark$
  */
 ```
+
+The CAT of the Yapi documentation system is the item classification numeric ID, which is obtained from the classification URL and cannot be uploaded unless it is a number
