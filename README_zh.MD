@@ -81,3 +81,11 @@ JetBrains IDE可使用自定义Live Template添加如下内容，快捷生成模
 ```
 
 Yapi文档系统的cat为项目分类数字id，从分类url里获取，非数字无法上传
+
+
+### 在Intellij平台和Interactive Assistant一起使用
+0.通过Release下载可执行文件或自行编译可执行文件
+1.通过Settings->Plugin->安装Interactive Assistant
+2.通过Settings->Other Settings->Interactive Assistant->添加配置如下:
+![img.png](img.png)
+3.然后在右键菜单->Abilities便可使用

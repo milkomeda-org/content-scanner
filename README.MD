@@ -80,3 +80,10 @@ The JetBrains IDE adds the following to generate templates quickly using a custo
 ```
 
 The CAT of the Yapi documentation system is the item classification numeric ID, which is obtained from the classification URL and cannot be uploaded unless it is a number
+
+### Use Through Interactive Assistant on Intellij Platform
+0.Download the executable file through Release or compile the executable file yourself
+1.Install Interactive Assistant through Settings Plugin
+2.Add the configuration through Settings->Other Settings->Interactive Assistant as follows:
+![img.png](img.png)
+3.Then you can use it in the right-click menu -> Abilities
