@@ -85,5 +85,20 @@ The CAT of the Yapi documentation system is the item classification numeric ID, 
 0.Download the executable file through Release or compile the executable file yourself
 1.Install Interactive Assistant through Settings Plugin
 2.Add the configuration through Settings->Other Settings->Interactive Assistant as follows:
-![img.png](img.png)
+3. Paste the template into the Map input box:
+```
+{
+  "$type": "exe",
+  "$args_name": "searchPath",
+  "$path": "\"C:\\Users\\Administrator\\Desktop\\doc-scanner\\execute.exe\"",
+  "url": "http://172.16.2.101:4999/server/index.php?s\u003d/api/item/updateByApi",
+  "key": "e9f0bdd396a768399c63ef86d70ccc322044412143",
+  "token": "834e06eb69e21565d997cf15a1159da21794468976",
+  "speed": "10",
+  "cat": "NDE3NzY\u003d ",
+  "templatePath": "\"C:\\Users\\Administrator\\Desktop\\doc-scanner\\template.txt\"",
+  "ask": "false",
+  "type": "showdoc"
+}
+```
 3.Then you can use it in the right-click menu -> Abilities
