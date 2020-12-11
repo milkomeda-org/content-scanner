@@ -86,6 +86,21 @@ Yapi文档系统的cat为项目分类数字id，从分类url里获取，非数�
 ### 在Intellij平台和Interactive Assistant一起使用
 0.通过Release下载可执行文件或自行编译可执行文件
 1.通过Settings->Plugin->安装Interactive Assistant
-2.通过Settings->Other Settings->Interactive Assistant->添加配置如下:
-![img.png](img.png)
-3.然后在右键菜单->Abilities便可使用
+2.通过Settings->Other Settings->Interactive Assistant->
+3.复制以下配置模板到Map选项卡的输入框:
+```
+{
+  "$type": "exe",
+  "$args_name": "searchPath",
+  "$path": "\"C:\\Users\\Administrator\\Desktop\\doc-scanner\\execute.exe\"",
+  "url": "http://172.16.2.101:4999/server/index.php?s\u003d/api/item/updateByApi",
+  "key": "e9f0bdd396a768399c63ef86d70ccc322044412143",
+  "token": "834e06eb69e21565d997cf15a1159da21794468976",
+  "speed": "10",
+  "cat": "NDE3NzY\u003d ",
+  "templatePath": "\"C:\\Users\\Administrator\\Desktop\\doc-scanner\\template.txt\"",
+  "ask": "false",
+  "type": "showdoc"
+}
+```
+3.然后在右键菜单和编辑菜单->Abilities便可使用
