@@ -85,6 +85,7 @@ The CAT of the Yapi documentation system is the item classification numeric ID, 
 0.Download the executable file through Release or compile the executable file yourself
 1.Install Interactive Assistant through Settings Plugin
 2.Add the configuration through Settings->Other Settings->Interactive Assistant
+
 3.Paste the template into the Map input box:
 ```
 {
