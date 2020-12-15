@@ -84,6 +84,7 @@ Yapi文档系统的cat为项目分类数字id，从分类url里获取，非数�
 
 
 ### 在Intellij平台和Interactive Assistant一起使用
+#### Interactive Assistant
 0.通过Release下载可执行文件或自行编译可执行文件
 1.通过Settings->Plugin->安装Interactive Assistant
 2.通过Settings->Other Settings->Interactive Assistant->
@@ -104,3 +105,6 @@ Yapi文档系统的cat为项目分类数字id，从分类url里获取，非数�
 }
 ```
 3.然后在右键菜单和编辑菜单->Abilities便可使用
+
+#### External Tools
+0.自行配置
