@@ -2,7 +2,8 @@
 ![](https://img.shields.io/github/issues/milkomeda-org/doc-scanner)
 ![](https://img.shields.io/github/license/milkomeda-org/doc-scanner)
 # Content Scanner
-### Method Of Use
+[中文](./README_zh.MD)
+### How to get start
 Write matching comments at the interface layer and execute the program
 
 .js .go .java .php file is currently available for scanning. Please add other types to compile
@@ -55,11 +56,11 @@ Write matching comments at the interface layer and execute the program
 |@remark| remark
 |@number| serialNumber
 
-### Document system supported
+### Supported These Document system
 - ShowDoc
 - Yapi
 
-### To support
+### Going to support soon
 - Rap
 
 ### Hint
